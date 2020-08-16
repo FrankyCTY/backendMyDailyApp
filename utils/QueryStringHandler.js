@@ -1,4 +1,4 @@
-class QueryStringMiddlewares {
+class QueryStringHandler {
   constructor(query, queryString) {
     this.query = query;
     this.queryString = queryString;
@@ -54,4 +54,4 @@ class QueryStringMiddlewares {
   }
 }
 
-module.exports = QueryStringMiddlewares;
+module.exports = QueryStringHandler;

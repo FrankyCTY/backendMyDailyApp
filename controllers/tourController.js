@@ -1,14 +1,14 @@
 const Tour = require("../models/tourModel");
-const QueryStringMiddlewares = require("../utils/queryStringUtils");
-const catchAsyncError = require("../utils/catchAsyncError");
+const QueryStringHandler = require("../utils/QueryStringHandler");
+const withCatchErrAsync = require("../utils/error/withCatchErrAsync");
 
 exports.aliasUnder200Tour = (req, res, next) => {
   req.query.price = { lte: "200" };
   next();
 };
 
-exports.getAllTours = catchAsyncError(async (req, res) => {
-  const queryStringClass = new QueryStringMiddlewares(Tour.find(), req.query)
+exports.getAllTours = withCatchErrAsync(async (req, res) => {
+  const queryStringClass = new QueryStringHandler(Tour.find(), req.query)
     .filter()
     .sort()
     .limitFields()
@@ -25,7 +25,7 @@ exports.getAllTours = catchAsyncError(async (req, res) => {
   });
 });
 
-exports.createTour = catchAsyncError(async (req, res) => {
+exports.createTour = withCatchErrAsync(async (req, res) => {
   const newTour = await Tour.create(req.body);
 
   return res.status(200).json({
@@ -38,7 +38,7 @@ exports.createTour = catchAsyncError(async (req, res) => {
 });
 
 // ============ Get Stats with aggregate ===========
-exports.getMonthlyPlan = catchAsyncError(async (req, res) => {
+exports.getMonthlyPlan = withCatchErrAsync(async (req, res) => {
   const year = req.params.year * 1;
 
   const plan = await Tour.aggregate([
