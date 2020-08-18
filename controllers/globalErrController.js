@@ -1,14 +1,12 @@
-const AppError = require("../utils/error/AppError");
+const OperationalErr = require("../utils/error/OperationalErr");
 
 const sendErrorDev = (error, res) => {
-  return res.status(
-    error.statusCode.json({
-      status: error.status,
-      error,
-      message: error.message,
-      stack: error.stack,
-    })
-  );
+  return res.status(error.statusCode).json({
+    status: error.status,
+    error,
+    message: error.message,
+    stack: error.stack,
+  });
 };
 
 const sendErrorProd = (error, res) => {
@@ -29,13 +27,13 @@ const sendErrorProd = (error, res) => {
 };
 
 const handleObjectIdErrorDB = (error) => {
-  return new AppError(`Invalid ${error.path}: ${error.value}.`, 400);
+  return new OperationalErr(`Invalid ${error.path}: ${error.value}.`, 400);
 };
 
 const handleDuplicateFieldDB = (error) => {
   const fieldValue = error.errmsg.match(/(["'])(?:(?=(\\?))\2.)*?\1/)[0];
 
-  return new AppError(
+  return new OperationalErr(
     `Duplicate field value: ${fieldValue}. Please use another value!`,
     400
   );
@@ -48,7 +46,7 @@ const handleValidationErrDB = (error) => {
 
   const message = `Invalid input data. ${allErrMsgs.join(". ")}`;
 
-  return new AppError(message, 400);
+  return new OperationalErr(message, 400);
 };
 
 module.exports = (error, req, res, next) => {
@@ -58,12 +56,12 @@ module.exports = (error, req, res, next) => {
     sendErrorDev(error, res);
   } else if (process.env.NODE_ENV === "production") {
     let cloneErr = { ...error };
-    // !) These handle database error will transform error into AppError format
+    // !) These handle database error will transform error into OperationalErr format
     // and the "isOperational" will be set to true as default.
     if (error.kind === "ObjectId") cloneErr = handleObjectIdErrorDB(error);
-    if (error.code === 11000) cloneErr = handleDuplicateFieldDB(error);
+    if (error.code === 11000) cloneErr = handleDuplicateFieldDB();
     if (error._message === "Validation failed")
-      cloneErr = handleValidationErrDB(error);
+      cloneErr = handleValidationErrDB();
 
     sendErrorProd(cloneErr, res);
   }

@@ -1,7 +1,8 @@
 const express = require("express");
 const morgan = require("morgan");
 const tourRouter = require("./routers/tourRouter");
-const AppError = require("./utils/error/AppError");
+const userRouter = require("./routers/userRouter");
+const OperationalErr = require("./utils/error/OperationalErr");
 const globalErrController = require("./controllers/globalErrController");
 
 const app = express();
@@ -14,9 +15,12 @@ if (process.env.NODE_ENV === "development") {
 app.use(express.json());
 
 app.use("/api/v2/tours", tourRouter);
+app.use("/api/v2/users", userRouter);
 
 app.all("*", (req, res, next) => {
-  next(new AppError(404, `Can't find ${req.originalUrl} on this server!`));
+  next(
+    new OperationalErr(404, `Can't find ${req.originalUrl} on this server!`)
+  );
 });
 
 app.use(globalErrController);
